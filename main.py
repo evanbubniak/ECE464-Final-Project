@@ -8,12 +8,12 @@ from newsapi import NewsApiClient
 newsapi = NewsApiClient(api_key=API_KEY)
 
 # /v2/top-headlines
-top_headlines = newsapi.get_top_headlines(q='bitcoin',
+top_headlines = newsapi.get_top_headlines(q='election',
                                           sources='bbc-news,the-verge',
                                           language='en')
 
 # /v2/everything
-all_articles = newsapi.get_everything(q='bitcoin',
+all_articles = newsapi.get_everything(q='election',
                                       sources='bbc-news,the-verge',
                                       domains='bbc.co.uk,techcrunch.com',
                                       from_param='2020-10-01',
