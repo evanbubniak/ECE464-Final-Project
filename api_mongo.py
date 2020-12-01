@@ -22,6 +22,7 @@ max_page_size = 100
 newsapi = NewsApiClient(api_key=API_KEY)
 DB_URI = "mongodb+srv://{}:{}@cluster0.cbxuc.mongodb.net/{}?retryWrites=true&w=majority".format(mongo_username, MONGO_PW, database_name)
 app.config["MONGODB_HOST"] = DB_URI
+app.config['CORS_HEADERS'] = 'Content-Type'
 db = MongoEngine()
 db.init_app(app)
 
@@ -108,7 +109,7 @@ def users_populate():
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/articles', methods=['GET', 'POST'])
-def api_books():
+def api_articles():
     if request.method == "GET":
         articles = []
         for article in Article.objects:
@@ -122,7 +123,7 @@ def api_books():
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/users', methods=['GET', 'POST'])
-def api_books():
+def api_users():
     if request.method == "GET":
         users = []
         for user in User.objects:
@@ -136,7 +137,7 @@ def api_books():
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/analytics', methods=['GET', 'POST'])
-def api_books():
+def api_analytics():
     if request.method == "GET":
         analytics = []
         for analytic in Analytic.objects:
