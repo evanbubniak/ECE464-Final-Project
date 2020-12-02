@@ -1,4 +1,5 @@
 API_KEY = open("news_api_key.txt", "r").read()[:-1]
+API_KEY_POPULATE = open("news_api_key_populate.txt", "r").read()[:-1]
 MONGO_PW = open("mongo_db_pw.txt", "r").read()[:-1]
 from flask import Flask, make_response, request, jsonify
 from flask_mongoengine import MongoEngine
@@ -8,6 +9,8 @@ from newsapi.newsapi_exception import NewsAPIException
 import datetime
 from json import dumps
 import math
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 
@@ -20,6 +23,7 @@ max_page_size = 100
 
 # Init
 newsapi = NewsApiClient(api_key=API_KEY)
+newsapi_populate = NewsApiClient(api_key=API_KEY_POPULATE)
 DB_URI = "mongodb+srv://{}:{}@cluster0.cbxuc.mongodb.net/{}?retryWrites=true&w=majority".format(mongo_username, MONGO_PW, database_name)
 app.config["MONGODB_HOST"] = DB_URI
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -27,16 +31,22 @@ db = MongoEngine()
 db.init_app(app)
 
 class Article(db.Document):
-    source = db.StringField()
+    sourceId = db.StringField()
+    sourceName = db.StringField()
     title = db.StringField()
     url = db.StringField()
+    language = db.StringField()
+    publishDate = db.DateTimeField()
 
     def to_json(self):
         # convert document to JSON
         return {
-            "source": self.book_id,
+            "sourceId": self.sourceId,
+            "sourceName": self.sourceName,
             "title": self.title,
-            "url": self.url
+            "url": self.url,
+            "language": self.language,
+            "publishDate": self.publishDate
         }
 
 class User(db.Document):
@@ -67,21 +77,18 @@ class Analytic(db.Document):
 # example request: http POST http://127.0.0.1:5000/api/articles_populate
 @app.route('/api/articles_populate', methods=['POST'])
 def articles_populate():
-    # may need to store the source url if using excludeDomains parameter later
-    all_sources = [source['id'] for source in newsapi.get_sources()['sources']]
-
+    categories = ['business', 'entertainment', 'general', 'health', 'science', 'sports', 'technology']
+    languages = ['ar', 'de', 'en', 'es', 'fr', 'he', 'it', 'nl', 'no', 'pt', 'ru', 'se', 'ud', 'zh']
     articles = []
-    # query 2 sources at a time, only the first 100 articles are returned
-    for i in range(math.ceil(len(all_sources)/2)):
-        sources = all_sources[2*i:2*i+2]
-        sources = ','.join(sources)
-        res = newsapi.get_everything(sources=sources, from_param=today, page_size=max_page_size)
+    for category in categories:
+        for language in languages:
+            res = newsapi_populate.get_everything(q=category, language=language, from_param=today, page_size=max_page_size)
 
         for article in res['articles']:
             # only keep the article source (id), title, and url
-            articles.append(Article(source=article['source']['id'], title=article['title'], url=article['url']))
+            articles.append(Article(sourceId=article['source']['id'], sourceName=article['source']['name'], title=article['title'], url=article['url'],
+                                    language=language, publishDate=datetime.datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")))
 
-    # articles = [Article(source='SSSS', title='TTTT', url='UUUU')] # test article
     Article.objects.insert(articles)
     # gives a 404 error if not called with an http POST request, but db is populated successfully regardless
     return make_response("", 201)
@@ -149,8 +156,34 @@ def api_analytics():
         analytic.save()
         return make_response("", 201)
 
+# refreshed database with articles published on the current day (same as articles_populate)
+def db_refresh():
+    categories = ['business', 'entertainment', 'general', 'health', 'science', 'sports', 'technology']
+    languages = ['ar', 'de', 'en', 'es', 'fr', 'he', 'it', 'nl', 'no', 'pt', 'ru', 'se', 'ud', 'zh']
+    articles = []
+    for category in categories:
+        for language in languages:
+            res = newsapi_populate.get_everything(q=category, language=language, from_param=today, page_size=max_page_size)
+
+        for article in res['articles']:
+            # only keep the article source (id), title, and url
+            articles.append(Article(sourceId=article['source']['id'], sourceName=article['source']['name'], title=article['title'], url=article['url'],
+                                    language=language, publishDate=datetime.datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")))
+
+    Article.objects.insert(articles)
+
+# scheduler for periodic tasks
+scheduler = BackgroundScheduler()
+# run db_refresh() each day at midnight
+scheduler.add_job(func=db_refresh, trigger='cron', day='*', hour=0)
+scheduler.start()
+
+# Shut down the scheduler when exiting the app
+atexit.register(lambda: scheduler.shutdown())
+
 if __name__ == '__main__':
-    app.run()
+    # app.run()
+    app.run(use_reloader=False) # prevents scheduler from running db_refresh twice
 
 
 """
