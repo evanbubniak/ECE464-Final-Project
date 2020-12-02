@@ -35,6 +35,7 @@ class Article(db.Document):
     sourceName = db.StringField()
     title = db.StringField()
     url = db.StringField()
+    topic = db.StringField()
     language = db.StringField()
     publishDate = db.DateTimeField()
 
@@ -45,6 +46,7 @@ class Article(db.Document):
             "sourceName": self.sourceName,
             "title": self.title,
             "url": self.url,
+            "topic": self.topic,
             "language": self.language,
             "publishDate": self.publishDate
         }
@@ -82,12 +84,13 @@ def articles_populate():
     articles = []
     for category in categories:
         for language in languages:
-            res = newsapi_populate.get_everything(q=category, language=language, from_param=today, page_size=max_page_size)
+            res = newsapi_populate.get_everything(q=category, language=language, from_param=today, page_size=max_page_size, sort_by='relevancy')
 
-        for article in res['articles']:
-            # only keep the article source (id), title, and url
-            articles.append(Article(sourceId=article['source']['id'], sourceName=article['source']['name'], title=article['title'], url=article['url'],
-                                    language=language, publishDate=datetime.datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")))
+            for article in res['articles']:
+                # only keep the article source (id), title, and url
+                articles.append(Article(sourceId=article['source']['id'], sourceName=article['source']['name'], title=article['title'],
+                                        url=article['url'], topic=category, language=language,
+                                        publishDate=datetime.datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")))
 
     Article.objects.insert(articles)
     # gives a 404 error if not called with an http POST request, but db is populated successfully regardless
@@ -163,12 +166,13 @@ def db_refresh():
     articles = []
     for category in categories:
         for language in languages:
-            res = newsapi_populate.get_everything(q=category, language=language, from_param=today, page_size=max_page_size)
+            res = newsapi_populate.get_everything(q=category, language=language, from_param=today, page_size=max_page_size, sort_by='relevancy')
 
-        for article in res['articles']:
-            # only keep the article source (id), title, and url
-            articles.append(Article(sourceId=article['source']['id'], sourceName=article['source']['name'], title=article['title'], url=article['url'],
-                                    language=language, publishDate=datetime.datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")))
+            for article in res['articles']:
+                # only keep the article source (id), title, and url
+                articles.append(Article(sourceId=article['source']['id'], sourceName=article['source']['name'], title=article['title'],
+                                        url=article['url'], topic=category, language=language,
+                                        publishDate=datetime.datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")))
 
     Article.objects.insert(articles)
 
