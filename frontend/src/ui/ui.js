@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NewsItemContainerList from './components/NewsItemContainerList'
+
+const DEFAULT_LANGUAGES = ["en"];
+const DEFAULT_ITEMS_TO_SHOw = 50;
 
 function UI() {
 
   const [items, setItems] = useState([]);
-  const [languages, setLanguages] = useState(["en"]);
-  const [numItemsToShow, setNumItemsToShow] = useState(10);
-  fetchNewsItems().then((response) => response.json()).then((response) => setItems(response));
+  const [languages, setLanguages] = useState(DEFAULT_LANGUAGES);
+  const [numItemsToShow, setNumItemsToShow] = useState(DEFAULT_ITEMS_TO_SHOw);
+  
+
+  useEffect(() => {
+    fetchNewsItems().then((response) => response.json()).then((response) => setItems(response));;
+  }, []);
   
   const handleNumItems = (event) => {
     setNumItemsToShow(event.target.value);

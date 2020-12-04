@@ -3,13 +3,15 @@ import NewsBox from './NewsBox'
 
 export default function NewsItemContainerList(props){
 
-  const numBoxes = Math.min(props.items.length, props.numItemsToShow);
+
+  const items = !(props.languages.every(language => language === "")) ? props.items.filter((item) => props.languages.includes(item.language)) : props.items;
+  const numBoxes = Math.min(items.length, props.numItemsToShow);
   const nums = [];
   for (let ii = 0; ii<numBoxes; ii++){
     nums.push(ii);
   }
 
-  const items = (props.languages.length) != 0 ? props.items.filter((item) => props.languages.includes(item.language)) : props.items;
+  
   
   const boxes =[];
   
