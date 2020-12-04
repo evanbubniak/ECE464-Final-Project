@@ -9,7 +9,10 @@ export default function NewsItemContainerList(props){
     nums.push(ii);
   }
 
+  const items = (props.languages.length) != 0 ? props.items.filter((item) => props.languages.includes(item.language)) : props.items;
+  
   const boxes =[];
+  
   for (let ii = 0; ii <numBoxes; ii++) {
     boxes.push(
       <div key={parseInt(ii)}>
@@ -18,7 +21,7 @@ export default function NewsItemContainerList(props){
             padding: "5px",
             flexBasis: "10em",
         }}>
-          <NewsBox key={ii} itemNum={ii} item={props.items[ii]}  />
+          <NewsBox key={ii} itemNum={ii} item={items[ii]}  />
         </div>
       </div>
     )

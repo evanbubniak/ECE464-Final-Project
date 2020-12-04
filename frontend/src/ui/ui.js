@@ -4,11 +4,16 @@ import NewsItemContainerList from './components/NewsItemContainerList'
 function UI() {
 
   const [items, setItems] = useState([]);
+  const [languages, setLanguages] = useState(["en"]);
   const [numItemsToShow, setNumItemsToShow] = useState(10);
   fetchNewsItems().then((response) => response.json()).then((response) => setItems(response));
   
-  const handleChange = (event) => {
+  const handleNumItems = (event) => {
     setNumItemsToShow(event.target.value);
+  }
+
+  const handleLanguages = (event) => {
+    setLanguages(event.target.value.split(","))
   }
   
   return (
@@ -22,7 +27,9 @@ function UI() {
           <form>
             <label>
               Number of items to show:
-              <input type="number" value={numItemsToShow} onChange={handleChange} />
+              <input type="number" value={numItemsToShow} onChange={handleNumItems} />
+              Comma-separated language codes to use:
+              <input type="text" value={languages} onChange={handleLanguages} />
             </label>
           </form>
         </div>
@@ -31,7 +38,7 @@ function UI() {
           gridRow: "1 / 3",
           gridColumn: "3 / 4",
         }}>
-          <NewsItemContainerList items={items} numItemsToShow={numItemsToShow} />
+          <NewsItemContainerList items={items} numItemsToShow={numItemsToShow} languages={languages} />
         </div>
 
         <div id="BottomContainer" style={{
