@@ -28,6 +28,7 @@ function UI() {
             <label>
               Number of items to show:
               <input type="number" value={numItemsToShow} onChange={handleNumItems} />
+              <br />
               Comma-separated language codes to use:
               <input type="text" value={languages} onChange={handleLanguages} />
             </label>
