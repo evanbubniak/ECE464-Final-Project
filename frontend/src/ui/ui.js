@@ -123,14 +123,14 @@ function fetchNewsItems(){
 }
 
 function fetchPreferences(username){
-  return fetch("/api/users").then(resp => resp.json()).then(resp => resp.find(userpref => userpref.username === username).preferences)
+  return fetch("/api/users").then(resp => resp.json()).then(resp => resp.find(userpref => userpref._id === username).preferences)
 }
 
 function savePreferences(username, preferences){
   const requestOptions = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username:username, preferences:preferences })
+    body: JSON.stringify({ _id:username, preferences:preferences })
   };
   fetch('/api/users', requestOptions);
 }

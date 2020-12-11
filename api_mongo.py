@@ -126,10 +126,18 @@ def users_populate():
 @app.route('/api/articles', methods=['GET', 'POST'])
 def api_articles():
     if request.method == "GET":
+        content = request.json
+        options = dict()
+        option_keys = ['language__in', 'sourceName__in', 'sourceName__not__in', 'topic__in', 'topic__not__in']
+        for i, option in enumerate(['languages', 'favoriteSources', 'excludedSources', 'favoriteTopics', 'excludedTopics']):
+            if option:
+                options[option_keys[i]] = content[option]
+
         articles = []
-        for article in Article.objects:
+        for article in Article.objects(**options):
             articles.append(article)
         return make_response(jsonify(articles), 200)
+
     elif request.method == "POST":
         content = request.json
         article = Article(source=content['source'], title=content['title'], url=content['url'])
@@ -146,7 +154,7 @@ def api_users():
         return make_response(jsonify(users), 200)
     elif request.method == "POST":
         content = request.json
-        user = User(username=content['username'], preferences=content['preferences'])
+        user = User(_id=content['_id'], preferences=content['preferences'])
         try:
             user.save()
             resp = ""
@@ -173,6 +181,7 @@ def api_analytics():
 
 # refreshed database with articles published on the current day (same as articles_populate)
 def db_refresh():
+    today = datetime.datetime.today().strftime("%Y-%m-%d")
     categories = ['business', 'entertainment', 'general', 'health', 'science', 'sports', 'technology']
     languages = ['ar', 'de', 'en', 'es', 'fr', 'he', 'it', 'nl', 'no', 'pt', 'ru', 'se', 'ud', 'zh']
     articles = []
