@@ -52,14 +52,14 @@ class Article(db.Document):
         }
 
 class User(db.Document):
-    username = db.StringField()
+    _id = db.StringField()
     preferences = db.DictField() #or EmbeddedDocumentField()
     # alternative: have one field per each potential preference instead of a dict
 
     def to_json(self):
         # convert document to JSON
         return {
-            "username": self.username,
+            "username": self._id,
             "preferences": self.preferences # need to do any additional parsing here?
         }
 
@@ -103,19 +103,24 @@ def users_populate():
     # should we make the preference field names consistent with the News API query parameter names?
     users = []
     preferences = {
-        'favoriteTopics': 'soccer',
+        'favoriteTopics': 'sports',
         'favoriteSources': ['bbc-sport'],
     }
-    users.append(User(username='Nick', preferences=preferences))
+    users.append(User(_id='Nick', preferences=preferences))
     preferences = {
         'favoriteSources': ['associated-press', 'time'],
         'excludedSources': 'fox-news'
     }
-    users.append(User(username='Evan', preferences=preferences))
-    User.objects.insert(users)
-
-    # gives a 404 error if not called with an http POST request, but db is populated successfully regardless
-    return make_response("", 201)
+    users.append(User(_id='Evan', preferences=preferences))
+    try:
+        User.objects.insert(users)
+        resp = ""
+        code = 201
+    except:
+        resp = "Unprocessable Entity: Unique Constraint Violation."
+        code = 422
+    finally:
+        return make_response(resp, code)
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/articles', methods=['GET', 'POST'])
@@ -142,8 +147,15 @@ def api_users():
     elif request.method == "POST":
         content = request.json
         user = User(username=content['username'], preferences=content['preferences'])
-        user.save()
-        return make_response("", 201)
+        try:
+            user.save()
+            resp = ""
+            code = 201
+        except:
+            resp = "Unprocessable Entity: Unique Constraint Violation."
+            code = 422
+        finally:
+            return make_response(resp, code)
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/analytics', methods=['GET', 'POST'])
