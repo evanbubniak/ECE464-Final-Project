@@ -2,13 +2,20 @@ import React, { useState, useEffect } from 'react';
 import NewsItemContainerList from './components/NewsItemContainerList'
 
 const DEFAULT_LANGUAGES = ["en"];
-const DEFAULT_ITEMS_TO_SHOw = 50;
+const DEFAULT_ITEMS_TO_SHOW = 50;
+
+const DEFAULT_PREFS = {
+  languages: DEFAULT_LANGUAGES,
+  numItems: DEFAULT_ITEMS_TO_SHOW,
+  favoriteSources: [],
+  excludedSources: []
+};
 
 function UI() {
 
   const [items, setItems] = useState([]);
-  const [languages, setLanguages] = useState(DEFAULT_LANGUAGES);
-  const [numItemsToShow, setNumItemsToShow] = useState(DEFAULT_ITEMS_TO_SHOw);
+  const [preferences, setPreferences] = useState(DEFAULT_PREFS)
+  const [username, setUsername] = useState("");
   
 
   useEffect(() => {
@@ -16,11 +23,43 @@ function UI() {
   }, []);
   
   const handleNumItems = (event) => {
-    setNumItemsToShow(event.target.value);
+    let newPreferences = Object.assign({}, preferences);
+    newPreferences.numItems = event.target.value;
+    setPreferences(newPreferences);
   }
 
   const handleLanguages = (event) => {
-    setLanguages(event.target.value.split(","))
+    let newPreferences = Object.assign({}, preferences);
+    newPreferences.languages = event.target.value.split(",");
+    setPreferences(newPreferences);
+  }
+
+  const handleUsername = (event) => {
+    setUsername(event.target.value);
+  }
+
+  const handleSave = (event) => {
+    event.preventDefault();
+    savePreferences(username, preferences)
+  }
+  
+  const handleSources = (event) => {
+    event.preventDefault();
+    let newPreferences = Object.assign({}, preferences);
+    newPreferences.favoriteSources = event.target.value.split(",");
+    setPreferences(newPreferences);
+  }
+
+  const handleExcludedSources = (event) => {
+    event.preventDefault();
+    let newPreferences = Object.assign({}, preferences);
+    newPreferences.excludedSources = event.target.value.split(",");
+    setPreferences(newPreferences);
+  }
+
+  const importPreferences = (event) => {
+    event.preventDefault();
+    fetchPreferences(username).then(preferences => setPreferences(preferences))
   }
   
   return (
@@ -34,10 +73,22 @@ function UI() {
           <form>
             <label>
               Number of items to show:
-              <input type="number" value={numItemsToShow} onChange={handleNumItems} />
+              <input type="number" value={preferences.numItems} onChange={handleNumItems} />
               <br />
               Comma-separated language codes to use:
-              <input type="text" value={languages} onChange={handleLanguages} />
+              <input type="text" value={preferences.languages} onChange={handleLanguages} />
+              Favorite sources:
+              <input type="text" value={preferences.favoriteSources} onChange={handleSources} />
+              Sources to exclude:
+              <input type="text" value={preferences.excludedSources} onChange={handleExcludedSources} />
+            </label>
+          </form>
+          <form>
+            <label>
+              Username:
+              <input type="text" value={username} onChange={handleUsername} />
+              <button onClick={handleSave}>Save Preferences</button>
+              <button onClick={importPreferences}>Load Preferences</button>
             </label>
           </form>
         </div>
@@ -46,7 +97,7 @@ function UI() {
           gridRow: "1 / 3",
           gridColumn: "3 / 4",
         }}>
-          <NewsItemContainerList items={items} numItemsToShow={numItemsToShow} languages={languages} />
+          <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} languages={preferences.languages} />
         </div>
 
         <div id="BottomContainer" style={{
@@ -69,6 +120,19 @@ function UI() {
 
 function fetchNewsItems(){
   return fetch("/api/articles");
+}
+
+function fetchPreferences(username){
+  return fetch("/api/users").then(resp => resp.json()).then(resp => resp.find(userpref => userpref.username === username).preferences)
+}
+
+function savePreferences(username, preferences){
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username:username, preferences:preferences })
+  };
+  fetch('/api/users', requestOptions);
 }
 
 export default UI;

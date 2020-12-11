@@ -1,9 +1,6 @@
 import React from 'react';
 
 export default function NewsBox(props) {
-
-  console.log(props);
-
   return (
     <div className="InputTextBox">
       <div className="categoryText">
