@@ -126,19 +126,28 @@ def users_populate():
 @app.route('/api/articles', methods=['GET', 'POST'])
 def api_articles():
     if request.method == "GET":
-        content = request.json
-        options = dict()
-        option_keys = ['language__in', 'sourceName__in', 'sourceName__not__in', 'topic__in', 'topic__not__in']
-        for i, option in enumerate(['languages', 'favoriteSources', 'excludedSources', 'favoriteTopics', 'excludedTopics']):
-            if option:
-                options[option_keys[i]] = content[option]
-
         articles = []
-        for article in Article.objects(**options):
+        for article in Article.objects():
             articles.append(article)
         return make_response(jsonify(articles), 200)
 
     elif request.method == "POST":
+        content = request.json
+        options = dict()
+        option_keys = ['language__in', 'sourceName__in', 'sourceName__not__in', 'topic__in', 'topic__not__in']
+        for i, option in enumerate(['languages', 'favoriteSources', 'excludedSources', 'favoriteTopics', 'excludedTopics']):
+            if content.get(option):
+                options[option_keys[i]] = content[option]
+
+        articles = []
+
+        for article in Article.objects(**options):
+            articles.append(article)
+        return make_response(jsonify(articles), 200)
+
+@app.route('/api/add_articles', methods=['POST'])
+def api_add_articles():
+    if request.method == "POST":
         content = request.json
         article = Article(source=content['source'], title=content['title'], url=content['url'])
         article.save()
@@ -164,6 +173,8 @@ def api_users():
             code = 422
         finally:
             return make_response(resp, code)
+
+
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/analytics', methods=['GET', 'POST'])
