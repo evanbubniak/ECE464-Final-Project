@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import NewsItemContainerList from './components/NewsItemContainerList'
 
 const DEFAULT_LANGUAGES = ["en"];
-const DEFAULT_ITEMS_TO_SHOW = 50;
+const DEFAULT_ITEMS_TO_SHOW = 10;
 
 const DEFAULT_PREFS = {
   languages: DEFAULT_LANGUAGES,
@@ -110,7 +110,7 @@ function UI() {
 
   const importPreferences = (event) => {
     event.preventDefault();
-    fetchPreferences(username).then(preferences => {console.log(preferences); setPreferences(preferences)})
+    fetchUser(username).then(user => {console.log(user); setPreferences(user.preferences)})
     
   }
 
@@ -213,7 +213,7 @@ function fetchNewsItemsWithPrefs(prefs){
 //   return fetch("/api/users").then(resp => resp.json()).then(resp => resp.find(userpref => userpref._id === username).preferences)
 // }
 
-function fetchPreferences(username){
+function fetchUser(username){
 
   const requestOptions = {
     method: 'POST',
@@ -221,7 +221,7 @@ function fetchPreferences(username){
     body: JSON.stringify({_id: username})
   };
 
-  return fetch("/api/get_user", requestOptions)
+  return fetch("/api/get_user", requestOptions).then(resp => resp.json());
 }
 
 function savePreferences(username, preferences){

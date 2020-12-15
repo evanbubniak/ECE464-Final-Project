@@ -2,9 +2,11 @@ import React, {useState} from 'react';
 
 export default function NewsBox(props) {
 
+  console.log(props.item)
+
   const [postScore, setPostScore] = useState((function (){
-    if (props.item.hasOwnProperty("votes")) {
-      return props.item.votes;
+    if (props.item.hasOwnProperty("vote")) {
+      return props.item.vote;
     } else {
       return 0;
     }
