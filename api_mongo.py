@@ -194,7 +194,7 @@ def api_users():
 def api_get_user():
     if request.method == "POST":
         content = request.json
-        user = User.objects(_id=content['_id'])
+        user = User.objects(_id=content['_id'])[0]
         resp = user.to_json()
 
         # # for given user, get all votes grouped by sourceName and by topic
@@ -203,13 +203,13 @@ def api_get_user():
                     {"$group" : {"_id": "$sourceName", "count" : { "$sum" : 1} } },
                     {'$sort': {'count': -1}},
                     {'$limit': 3}]
-        resp['freqSources'] = list(Analytic.objects.aggregate(*pipeline))
+        resp['freqSources'] = list(Analytic.objects.aggregate(pipeline))
 
         pipeline = [{"$match": {'userId': content['_id'], 'vote': 'up'}},
-                    {"$group": {"_id": "topic", "count": {"$sum": 1}}},
+                    {"$group": {"_id": "$topic", "count": {"$sum": 1}}},
                     {'$sort': {'count': -1}},
                     {'$limit': 3}]
-        resp['freqTopics'] = list(Analytic.objects.aggregate(*pipeline))
+        resp['freqTopics'] = list(Analytic.objects.aggregate(pipeline))
         # return make_response(jsonify(user), 200)
         return make_response(jsonify(resp), 200)
 
