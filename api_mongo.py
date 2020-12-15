@@ -66,11 +66,11 @@ class User(db.Document):
 
 class Analytic(db.Document):
     userId = db.StringField()
-    articleId = db.StringField()
+    articleId = db.ObjectIdField()
     sourceName = db.StringField()
     topic = db.StringField()
-    voteDate = db.DateTimeField()
     vote = db.StringField()
+    voteDate = db.DateTimeField()
 
     def to_json(self):
         # convert document to JSON
@@ -79,7 +79,8 @@ class Analytic(db.Document):
             "articleId": self.articleId,
             "sourceName": self.sourceName,
             "topic": self.topic,
-            "voteDate": self.accessDate
+            "vote": self.vote,
+            "voteDate": self.voteDate
         }
 
 # example request: http POST http://127.0.0.1:5000/api/articles_populate
@@ -166,6 +167,8 @@ def api_users():
         users = []
         for user in User.objects:
             users.append(user)
+        resp = users[0].to_json()
+        print(resp, type(resp))
         return make_response(jsonify(users), 200)
     elif request.method == "POST":
         content = request.json
@@ -186,33 +189,26 @@ def api_get_user():
     if request.method == "POST":
         content = request.json
         user = User.objects(_id=content['_id'])
+        resp = user.to_json()
 
-        # CONTINUE HERE
         # # for given user, get all votes grouped by sourceName and by topic
         # analytics = Analytic.objects(userId=content['_id'])
+        pipeline = [{"$match": {'userId': content['_id'], 'vote': 'up'}},
+                    {"$group" : {"_id": "$sourceName", "count" : { "$sum" : 1} } },
+                    {'$sort': {'count': -1}},
+                    {'$limit': 3}]
+        resp['freqSources'] = list(Analytic.objects.aggregate(*pipeline))
 
-        return make_response(jsonify(user), 200)
+        pipeline = [{"$match": {'userId': content['_id'], 'vote': 'up'}},
+                    {"$group": {"_id": "topic", "count": {"$sum": 1}}},
+                    {'$sort': {'count': -1}},
+                    {'$limit': 3}]
+        resp['freqTopics'] = list(Analytic.objects.aggregate(*pipeline))
+        # return make_response(jsonify(user), 200)
+        return make_response(jsonify(resp), 200)
 
-
-# # update the current user's analytics to
-# @app.route('/api/upvote', methods=['POST'])
-# def api_upvote():
-#     content = request.json
-#     analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
-#                         topic=content['topic'], vote='up', voteDate=content['accessDate'])
-#     analytic.save()
-#     return make_response("", 201)
-#
-#
-# @app.route('/api/downvote', methods=['POST'])
-# def api_downvote():
-#     content = request.json
-#     analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
-#                         topic=content['topic'], vote='down', voteDate=content['accessDate'])
-#     analytic.save()
-#     return make_response("", 201)
-
-# basic GET/POST request, will need to incorporate input from the front-end later
+# record up/downvotes in the Analytic collection
+# perform an update instead of insert if the current given user-article pair is already in the collection
 @app.route('/api/analytics', methods=['GET', 'POST'])
 def api_analytics():
     if request.method == "GET":
@@ -222,9 +218,10 @@ def api_analytics():
         return make_response(jsonify(analytics), 200)
     elif request.method == "POST":
         content = request.json
-        analytic = Analytic(userId=content['_id'], articleId=ObjectId(oid=content['articleId']), sourceName=content['sourceName'],
-                            topic=content['topic'], vote=content['vote'], voteDate=content['voteDate'])
-        analytic.save()
+        if content['_id']:
+            Analytic.objects(userId=content['_id'], articleId=ObjectId(oid=content['articleId']),
+                             sourceName=content['sourceName'], topic=content['topic'])\
+                .update(upsert=True, set__vote=content['vote'], set__voteDate=content['voteDate'])
         return make_response("", 201)
 
 # refreshed database with articles published on the current day (same as articles_populate)
