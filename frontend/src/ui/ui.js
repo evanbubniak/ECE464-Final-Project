@@ -17,12 +17,28 @@ function UI() {
   const [items, setItems] = useState([]);
   const [preferences, setPreferences] = useState(DEFAULT_PREFS)
   const [username, setUsername] = useState("");
-  
+
+  const voteOnPost = (post_id, vote_type) => {
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id : post_id, username: username })
+    };
+
+    const endpoint = (vote_type === "upvote") ? '/api/upvote' : '/api/downvote';
+    fetch(endpoint, requestOptions);
+  }
+
   const updateItems = () => {
     fetchNewsItemsWithPrefs(preferences).then((response) => response.json()).then((response) => setItems(response));
   }
 
   useEffect(updateItems, []);
+
+  const handleSearchWithPreferences = (event) => {
+    event.preventDefault();
+    updateItems();
+  }
   
   const handleNumItems = (event) => {
     let newPreferences = Object.assign({}, preferences);
@@ -43,7 +59,6 @@ function UI() {
   const handleSave = (event) => {
     event.preventDefault();
     savePreferences(username, preferences)
-    updateItems()
   }
   
   const handleSources = (event) => {
@@ -69,7 +84,7 @@ function UI() {
 
   const importPreferences = (event) => {
     event.preventDefault();
-    fetchPreferences(username).then(preferences => {setPreferences(preferences); updateItems();})
+    fetchPreferences(username).then(preferences => {setPreferences(preferences)})
     
   }
   
@@ -108,6 +123,7 @@ function UI() {
                 <input type="text" value={username} onChange={handleUsername} />
                 <button onClick={handleSave}>Save Preferences</button>
                 <button onClick={importPreferences}>Load Preferences</button>
+                <button onClick={handleSearchWithPreferences}>Search with Preferences</button>
               </div>
             </label>
           </form>
@@ -118,7 +134,7 @@ function UI() {
           gridColumn: "3 / 4",
         }}>
           {/* <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} languages={preferences.languages} /> */}
-          <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} />
+          <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} voteOnPost={voteOnPost} />
         </div>
 
         <div id="BottomContainer" style={{

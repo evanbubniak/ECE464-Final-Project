@@ -24,7 +24,7 @@ export default function NewsItemContainerList(props){
             padding: "5px",
             flexBasis: "10em",
         }}>
-          <NewsBox key={ii} itemNum={ii} item={items[ii]}  />
+          <NewsBox key={ii} itemNum={ii} item={items[ii]} voteOnPost={props.voteOnPost} />
         </div>
       </div>
     )

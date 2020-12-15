@@ -1,6 +1,17 @@
 import React from 'react';
 
 export default function NewsBox(props) {
+
+  const upvotePost = (event) => {
+    event.preventDefault();
+    props.voteOnPost(props.item._id, "upvote");
+  }
+
+  const downvotePost = (event) => {
+    event.preventDefault();
+    props.voteOnPost(props.item._id, "downvote");
+  }
+
   return (
     <div className="InputTextBox">
       <div className="categoryText">
