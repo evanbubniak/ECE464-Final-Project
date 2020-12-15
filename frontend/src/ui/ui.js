@@ -47,7 +47,7 @@ function UI() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         _id : username,
-        articleId : post._id,
+        articleId : post._id['$oid'],
         sourceName : post.sourceName,
         topic : post.topic,
         vote : vote_type,

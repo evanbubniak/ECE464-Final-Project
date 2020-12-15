@@ -8,6 +8,7 @@ from newsapi import NewsApiClient
 from newsapi.newsapi_exception import NewsAPIException
 import datetime
 from json import dumps
+from bson import ObjectId
 import math
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -221,7 +222,7 @@ def api_analytics():
         return make_response(jsonify(analytics), 200)
     elif request.method == "POST":
         content = request.json
-        analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
+        analytic = Analytic(userId=content['_id'], articleId=ObjectId(oid=content['articleId']), sourceName=content['sourceName'],
                             topic=content['topic'], vote=content['vote'], voteDate=content['voteDate'])
         analytic.save()
         return make_response("", 201)
