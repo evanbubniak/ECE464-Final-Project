@@ -66,14 +66,18 @@ class User(db.Document):
 class Analytic(db.Document):
     userId = db.StringField()
     articleId = db.StringField()
-    accessDate = db.DateTimeField()
+    sourceName = db.StringField()
+    topic = db.StringField()
+    voteDate = db.DateTimeField()
 
     def to_json(self):
         # convert document to JSON
         return {
             "userId": self.userId,
             "articleId": self.articleId,
-            "accessDate": self.accessDate
+            "sourceName": self.sourceName,
+            "topic": self.topic,
+            "voteDate": self.accessDate
         }
 
 # example request: http POST http://127.0.0.1:5000/api/articles_populate
@@ -174,7 +178,37 @@ def api_users():
         finally:
             return make_response(resp, code)
 
+# returns preferences and scorecard (analytics info) for a giver username
+@app.route('/api/get_user', methods=['POST'])
+def api_get_user():
+    if request.method == "POST":
+        content = request.json
+        user = User.objects(_id=content['_id'])
 
+        # CONTINUE HERE
+        # # for given user, get all votes grouped by sourceName and by topic
+        # analytics = Analytic.objects(userId=content['_id'])
+
+        return make_response(jsonify(user), 200)
+
+
+# # update the current user's analytics to
+# @app.route('/api/upvote', methods=['POST'])
+# def api_upvote():
+#     content = request.json
+#     analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
+#                         topic=content['topic'], vote='up', voteDate=content['accessDate'])
+#     analytic.save()
+#     return make_response("", 201)
+#
+#
+# @app.route('/api/downvote', methods=['POST'])
+# def api_downvote():
+#     content = request.json
+#     analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
+#                         topic=content['topic'], vote='down', voteDate=content['accessDate'])
+#     analytic.save()
+#     return make_response("", 201)
 
 # basic GET/POST request, will need to incorporate input from the front-end later
 @app.route('/api/analytics', methods=['GET', 'POST'])
@@ -186,7 +220,8 @@ def api_analytics():
         return make_response(jsonify(analytics), 200)
     elif request.method == "POST":
         content = request.json
-        analytic = Analytic(userId=content['userId'], articleId=content['articleId'], accessDate=content['accessDate'])
+        analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
+                            topic=content['topic'], vote=content['vote'], voteDate=content['voteDate'])
         analytic.save()
         return make_response("", 201)
 
