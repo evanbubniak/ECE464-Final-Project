@@ -15,7 +15,8 @@ export default function NewsBox(props) {
   return (
     <div className="InputTextBox">
       <div className="categoryText">
-        {props.item.sourceName}: {props.item.topic}; {props.item.language}
+        {props.item.sourceName}: {props.item.topic}; {props.item.language} <br/>
+        {new Date(props.item.publishDate['$date']).toLocaleString()}
       </div>
       <div>
         <a href={props.item.url}>{props.item.title}</a>

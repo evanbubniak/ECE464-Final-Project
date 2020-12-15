@@ -6,7 +6,6 @@ const DEFAULT_ITEMS_TO_SHOW = 50;
 
 const DEFAULT_PREFS = {
   languages: DEFAULT_LANGUAGES,
-  numItems: DEFAULT_ITEMS_TO_SHOW,
   favoriteSources: [],
   excludedSources: [],
   favoriteCategories: []
@@ -17,6 +16,28 @@ function UI() {
   const [items, setItems] = useState([]);
   const [preferences, setPreferences] = useState(DEFAULT_PREFS)
   const [username, setUsername] = useState("");
+  const [dateFilters, setDateFilters] = useState({
+    useStartDate: true,
+    startDate: '',
+    useEndDate: true,
+    endDate: ''
+  })
+  const [numItems, setNumItems] = useState(DEFAULT_ITEMS_TO_SHOW);
+
+  const updateDateFilters = (event) => {
+    event.preventDefault();
+    let filter = event.target.name;
+    let newValue = event.target.type === 'checkbox' ? !(dateFilters[filter]) : event.target.value;
+    let newDateFilters = Object.assign({}, dateFilters);
+    newDateFilters[filter] = newValue;
+    setPreferences(newDateFilters);
+  }
+
+  const startDateCheckBox = ( <input type='checkbox' name='useStartDate' checked={dateFilters.useStartDate} onChange={updateDateFilters}/> );
+  const endDateCheckBox = ( <input type='checkbox' name='useEndDate' checked={dateFilters.useEndDate} onChange={updateDateFilters}/> );
+  const startDateInput = (<input type="text"  name='startDate' value={dateFilters.startDate} onChange={updateDateFilters} disabled={!dateFilters.useStartDate}/>)
+  const endDateInput = (<input type="text"  name='endDate' value={dateFilters.endDate} onChange={updateDateFilters} disabled={!dateFilters.useEndDate}/>)
+
 
   const voteOnPost = (post_id, vote_type) => {
     const requestOptions = {
@@ -41,9 +62,7 @@ function UI() {
   }
   
   const handleNumItems = (event) => {
-    let newPreferences = Object.assign({}, preferences);
-    newPreferences.numItems = event.target.value;
-    setPreferences(newPreferences);
+    setNumItems(event.target.value);
   }
 
   const handleLanguages = (event) => {
@@ -100,7 +119,7 @@ function UI() {
             <label>
               <div>
                 Number of items to show:
-                <input type="number" value={preferences.numItems} onChange={handleNumItems} />
+                <input type="number" value={numItems} onChange={handleNumItems} />
               </div>
               <div>
                 Comma-separated language codes to use:
@@ -117,6 +136,12 @@ function UI() {
               <div>
                 Preferred categories:
                 <input type="text" value={preferences.favoriteCategories} onChange={handlePrefCategories} />                
+              </div>
+              <div>
+                {startDateCheckBox} Start date: {startDateInput}
+                <br />
+                {endDateCheckBox} End date: {endDateInput}
+                
               </div>
               <div>
                 Username:
