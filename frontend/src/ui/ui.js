@@ -113,6 +113,14 @@ function UI() {
     fetchPreferences(username).then(preferences => {setPreferences(preferences)})
     
   }
+
+  const addExcludedSource = (source) => {
+    let newPreferences = Object.assign({}, preferences);
+    newPreferences.excludedSources = preferences.excludedSources.concat(source)
+    setPreferences(newPreferences);
+  }
+
+  
   
   return (
     <div className="UI">
@@ -166,7 +174,7 @@ function UI() {
           gridColumn: "3 / 4",
         }}>
           {/* <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} languages={preferences.languages} /> */}
-          <NewsItemContainerList items={items} numItemsToShow={numItems} voteOnPost={voteOnPost} />
+          <NewsItemContainerList items={items} numItemsToShow={numItems} voteOnPost={voteOnPost} addExcludedSource={addExcludedSource}/>
         </div>
 
         <div id="BottomContainer" style={{
