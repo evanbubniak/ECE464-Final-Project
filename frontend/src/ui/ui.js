@@ -30,7 +30,7 @@ function UI() {
     let newValue = event.target.type === 'checkbox' ? !(dateFilters[filter]) : event.target.value;
     let newDateFilters = Object.assign({}, dateFilters);
     newDateFilters[filter] = newValue;
-    setPreferences(newDateFilters);
+    setDateFilters(newDateFilters);
   }
 
   const startDateCheckBox = ( <input type='checkbox' name='useStartDate' checked={dateFilters.useStartDate} onChange={updateDateFilters}/> );
@@ -110,7 +110,7 @@ function UI() {
 
   const importPreferences = (event) => {
     event.preventDefault();
-    fetchPreferences(username).then(preferences => {setPreferences(preferences)})
+    fetchPreferences(username).then(preferences => {console.log(preferences); setPreferences(preferences)})
     
   }
 
@@ -209,8 +209,19 @@ function fetchNewsItemsWithPrefs(prefs){
   return fetch("/api/articles", requestOptions);
 }
 
+// function fetchPreferences(username){
+//   return fetch("/api/users").then(resp => resp.json()).then(resp => resp.find(userpref => userpref._id === username).preferences)
+// }
+
 function fetchPreferences(username){
-  return fetch("/api/users").then(resp => resp.json()).then(resp => resp.find(userpref => userpref._id === username).preferences)
+
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({_id: username})
+  };
+
+  return fetch("/api/get_user", requestOptions)
 }
 
 function savePreferences(username, preferences){

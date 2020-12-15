@@ -1,15 +1,25 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 export default function NewsBox(props) {
+
+  const [postScore, setPostScore] = useState((function (){
+    if (props.item.hasOwnProperty("votes")) {
+      return props.item.votes;
+    } else {
+      return 0;
+    }
+  })());
 
   const upvotePost = (event) => {
     event.preventDefault();
     props.voteOnPost(props.item, "up");
+    setPostScore(postScore + 1);
   }
 
   const downvotePost = (event) => {
     event.preventDefault();
     props.voteOnPost(props.item, "down");
+    setPostScore(postScore - 1);
   }
 
   // const options = ["Add to Favorite Sources", "Add to Excluded Sources", "Add to Favorite Categories"];
@@ -25,6 +35,8 @@ export default function NewsBox(props) {
       {optionsButtons}
     </div>
   )
+
+
 
   // const ups = (props.item.)
 
@@ -43,6 +55,7 @@ export default function NewsBox(props) {
       <div>
         <button onClick={upvotePost}>Up</button>
         <button onClick={downvotePost}>Down</button>
+        {postScore}
       </div>
     </div>
   );
