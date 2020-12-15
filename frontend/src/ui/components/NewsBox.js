@@ -4,13 +4,15 @@ export default function NewsBox(props) {
 
   const upvotePost = (event) => {
     event.preventDefault();
-    props.voteOnPost(props.item._id, "upvote");
+    props.voteOnPost(props.item, "up");
   }
 
   const downvotePost = (event) => {
     event.preventDefault();
-    props.voteOnPost(props.item._id, "downvote");
+    props.voteOnPost(props.item, "down");
   }
+
+  // const ups = (props.item.)
 
   return (
     <div className="InputTextBox">
@@ -20,6 +22,10 @@ export default function NewsBox(props) {
       </div>
       <div>
         <a href={props.item.url}>{props.item.title}</a>
+      </div>
+      <div>
+        <button onClick={upvotePost}>Up</button>
+        <button onClick={downvotePost}>Down</button>
       </div>
     </div>
   );

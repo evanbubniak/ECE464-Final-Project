@@ -39,15 +39,22 @@ function UI() {
   const endDateInput = (<input type="text"  name='endDate' value={dateFilters.endDate} onChange={updateDateFilters} disabled={!dateFilters.useEndDate}/>)
 
 
-  const voteOnPost = (post_id, vote_type) => {
+  const voteOnPost = (post, vote_type) => {
+    // analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
+    // topic=content['topic'], vote=content['vote'], voteDate=content['voteDate'])
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id : post_id, username: username })
+      body: JSON.stringify({
+        _id : username,
+        articleId : post._id,
+        sourceName : post.sourceName,
+        topic : post.topic,
+        vote : vote_type,
+        voteDate: new Date().toDateString(),
+                      })
     };
-
-    const endpoint = (vote_type === "upvote") ? '/api/upvote' : '/api/downvote';
-    fetch(endpoint, requestOptions);
+    fetch('/api/analytics', requestOptions);
   }
 
   const updateItems = () => {
@@ -159,7 +166,7 @@ function UI() {
           gridColumn: "3 / 4",
         }}>
           {/* <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} languages={preferences.languages} /> */}
-          <NewsItemContainerList items={items} numItemsToShow={preferences.numItems} voteOnPost={voteOnPost} />
+          <NewsItemContainerList items={items} numItemsToShow={numItems} voteOnPost={voteOnPost} />
         </div>
 
         <div id="BottomContainer" style={{
