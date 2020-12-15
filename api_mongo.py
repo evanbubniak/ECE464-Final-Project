@@ -146,10 +146,18 @@ def api_articles():
             if content.get(option):
                 options[option_keys[i]] = content[option]
 
-        articles = []
+        pipeline = [{"$group": {"_id": "$articleId", "count": {"$sum": 1}}},
+                    {'$sort': {'count': -1}}]
+        an = list(Analytic.objects.aggregate(*pipeline))
+        ids = [a['_id'] for a in an]
 
+        articles = []
         for article in Article.objects(**options):
+            a = article.to_mongo()
+            if a['_id'] in ids:
+                a['vote'] = an[ids.index(a['_id'])]['count']
             articles.append(article)
+
         return make_response(jsonify(articles), 200)
 
 @app.route('/api/add_articles', methods=['POST'])
@@ -167,8 +175,6 @@ def api_users():
         users = []
         for user in User.objects:
             users.append(user)
-        resp = users[0].to_json()
-        print(resp, type(resp))
         return make_response(jsonify(users), 200)
     elif request.method == "POST":
         content = request.json
@@ -222,6 +228,7 @@ def api_analytics():
             Analytic.objects(userId=content['_id'], articleId=ObjectId(oid=content['articleId']),
                              sourceName=content['sourceName'], topic=content['topic'])\
                 .update(upsert=True, set__vote=content['vote'], set__voteDate=content['voteDate'])
+            print(Analytic.objects()[0].to_mongo())
         return make_response("", 201)
 
 # refreshed database with articles published on the current day (same as articles_populate)
