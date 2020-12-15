@@ -69,6 +69,7 @@ class Analytic(db.Document):
     sourceName = db.StringField()
     topic = db.StringField()
     voteDate = db.DateTimeField()
+    vote = db.StringField()
 
     def to_json(self):
         # convert document to JSON
