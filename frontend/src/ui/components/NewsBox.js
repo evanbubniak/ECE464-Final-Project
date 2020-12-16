@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 
 export default function NewsBox(props) {
 
-  console.log(props.item)
+  // console.log(props.item)
 
   const [postScore, setPostScore] = useState((function (){
     if (props.item.hasOwnProperty("vote")) {
@@ -48,7 +48,7 @@ export default function NewsBox(props) {
         {props.item.sourceName}: {props.item.topic}; {props.item.language}
         {dropDownMenu}
       </div>
-      <div className="categoryText">
+      <div className="categoryText2">
         {new Date(props.item.publishDate['$date']).toLocaleString()}
       </div>
       <div>
@@ -57,7 +57,7 @@ export default function NewsBox(props) {
       <div>
         <button onClick={upvotePost}>Up</button>
         <button onClick={downvotePost}>Down</button>
-        {postScore}
+        {/* {postScore} */}
       </div>
     </div>
   );

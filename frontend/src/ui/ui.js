@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import NewsItemContainerList from './components/NewsItemContainerList'
 
 const DEFAULT_LANGUAGES = ["en"];
-const DEFAULT_ITEMS_TO_SHOW = 10;
+const DEFAULT_ITEMS_TO_SHOW = 100;
 
 const DEFAULT_PREFS = {
   languages: DEFAULT_LANGUAGES,
@@ -22,6 +22,10 @@ function UI() {
     useEndDate: true,
     endDate: ''
   })
+  const [scorecard, setScorecard] = useState({
+    freqTopics: [],
+    freqSources: []
+  });
   const [numItems, setNumItems] = useState(DEFAULT_ITEMS_TO_SHOW);
 
   const updateDateFilters = (event) => {
@@ -42,19 +46,21 @@ function UI() {
   const voteOnPost = (post, vote_type) => {
     // analytic = Analytic(userId=content['_id'], articleId=content['articleId'], sourceName=content['sourceName'],
     // topic=content['topic'], vote=content['vote'], voteDate=content['voteDate'])
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        _id : username,
-        articleId : post._id['$oid'],
-        sourceName : post.sourceName,
-        topic : post.topic,
-        vote : vote_type,
-        voteDate: new Date().toDateString(),
-                      })
-    };
-    fetch('/api/analytics', requestOptions);
+    if (username !== "") {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _id : username,
+          articleId : post._id['$oid'],
+          sourceName : post.sourceName,
+          topic : post.topic,
+          vote : vote_type,
+          voteDate: new Date().toDateString(),
+                        })
+      };
+      fetch('/api/analytics', requestOptions);
+    }
   }
 
   const updateItems = () => {
@@ -110,7 +116,11 @@ function UI() {
 
   const importPreferences = (event) => {
     event.preventDefault();
-    fetchUser(username).then(user => {console.log(user); setPreferences(user.preferences)})
+    fetchUser(username).then(user => {console.log(user); setPreferences(user.preferences); setScorecard({
+      freqTopics: user.freqTopics,
+      freqSources: user.freqSources
+    }
+    ); updateItems();});
     
   }
 
@@ -140,18 +150,18 @@ function UI() {
                 Comma-separated language codes to use:
                 <input type="text" value={preferences.languages} onChange={handleLanguages} />
               </div>
-              <div>
+              {/* <div>
                 Favorite sources:
                 <input type="text" value={preferences.favoriteSources} onChange={handleSources} />
-              </div>
+              </div> */}
               <div>
                 Sources to exclude:
                 <input type="text" value={preferences.excludedSources} onChange={handleExcludedSources} />
               </div>
-              <div>
+              {/* <div>
                 Preferred categories:
                 <input type="text" value={preferences.favoriteCategories} onChange={handlePrefCategories} />                
-              </div>
+              </div> */}
               <div>
                 {startDateCheckBox} Start date: {startDateInput}
                 <br />
@@ -166,6 +176,9 @@ function UI() {
                 <button onClick={handleSearchWithPreferences}>Search with Preferences</button>
               </div>
             </label>
+            <div>
+            <ScoreCard scorecard={scorecard} />
+          </div>
           </form>
         </div>
 
@@ -232,5 +245,35 @@ function savePreferences(username, preferences){
   };
   fetch('/api/users', requestOptions);
 }
+
+function ScoreCard(props) {
+  
+  const freqTopics = props.scorecard.freqTopics;
+  const freqSources = props.scorecard.freqSources;
+  const topicEntries = [];
+  for (let ii = 0; ii < freqTopics.length; ii++) {
+    topicEntries.push((<div>{freqTopics[ii]._id}: {freqTopics[ii].count}</div>))
+  }
+  const sourceEntries = [];
+  for (let ii = 0; ii < freqSources.length; ii++) {
+    sourceEntries.push((<div>{freqSources[ii]._id}: {freqSources[ii].count}</div>))
+  }
+  // const topicEntries = freqTopics.map();
+  
+  // const sourceEntries = freqSources.map(source => {(<div>{source._id}: {source.count}</div>)});
+
+  return (
+    <div>
+      Topics: <br />
+      {topicEntries} <br />
+      Sources: <br />
+      {sourceEntries}
+    </div>
+
+  )
+
+}
+
+
 
 export default UI;

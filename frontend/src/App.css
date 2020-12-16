@@ -17,6 +17,10 @@ input, button {
   border-bottom: 1px solid red;
 }
 
+.categoryText2 {
+  border-bottom: 1px solid red;
+}
+
 .InputTextBox {
   width: 200px;
   overflow: hidden;

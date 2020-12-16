@@ -12,6 +12,7 @@ from bson import ObjectId
 import math
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
+from random import shuffle
 
 app = Flask(__name__)
 
@@ -54,7 +55,7 @@ class Article(db.Document):
 
 class User(db.Document):
     _id = db.StringField()
-    preferences = db.DictField() #or EmbeddedDocumentField()
+    preferences = db.DictField() 
     # alternative: have one field per each potential preference instead of a dict
 
     def to_json(self):
@@ -157,6 +158,7 @@ def api_articles():
             if a['_id'] in ids:
                 a['vote'] = an[ids.index(a['_id'])]['count']
             articles.append(article)
+        
 
         return make_response(jsonify(articles), 200)
 
@@ -198,7 +200,6 @@ def api_get_user():
         resp = user.to_json()
 
         # # for given user, get all votes grouped by sourceName and by topic
-        # analytics = Analytic.objects(userId=content['_id'])
         pipeline = [{"$match": {'userId': content['_id'], 'vote': 'up'}},
                     {"$group" : {"_id": "$sourceName", "count" : { "$sum" : 1} } },
                     {'$sort': {'count': -1}},
